@@ -12,17 +12,21 @@ export default new Command(
     description: "Shows this help message",
   },
   async (chatLog) => {
-    const commands = new Map<string, Command>();
+    const commands: Command[] = [];
 
-    const commandFiles = await glob(path.join(__dirname, "../**/*.js"));
+    const commandFiles = await glob(
+      path.join(__dirname, "../../commands/**/*.js")
+    );
 
     for (const file of commandFiles) {
       const command = await import(file);
-      commands.set(command.default.name, command.default);
+      commands.push(command.default);
     }
 
-    chatLog.log(chalk`{bgGreen CMD}: {bold Help Menu}`);
-    for (const [, command] of commands) {
+    chatLog.log(
+      chalk`{bgGreen CMD}: {bold Help Menu} | {green ${commands.length}} commands`
+    );
+    for (const command of commands) {
       chatLog.log(
         chalk`{bgGreen CMD}: {bold /${command.opts.name}} ${command.opts.description}`
       );
