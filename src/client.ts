@@ -10,6 +10,7 @@ import syncGlob from "glob";
 import { promisify } from "util";
 import path from "path";
 import Conf from "conf/dist/source";
+import type UserStats from "./types/stats/UserStats";
 
 const glob = promisify(syncGlob);
 const config = new Conf({
@@ -17,8 +18,9 @@ const config = new Conf({
   projectName: "wschat",
 });
 
+let name = config.get("name") ?? "Unnamed";
+
 export default async function (address?: string) {
-  let name = config.get("name") ?? "Unnamed";
   const server = http.createServer();
   const ioserver = new socketio.Server(server, {
     maxHttpBufferSize: 1000000,
@@ -189,6 +191,12 @@ export default async function (address?: string) {
     sock.on(WSEvents.MESSAGE, (msg: Message) => {
       sock.broadcast.emit(WSEvents.MESSAGE, msg);
     });
+
+    sock.on(WSEvents.STATS_USERS, (cb) => {
+      cb({
+        users: ioserver.engine.clientsCount,
+      } as UserStats)
+    })
 
     sock.broadcast.emit(WSEvents.NEW_PEER);
   });
