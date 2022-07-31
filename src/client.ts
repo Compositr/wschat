@@ -11,6 +11,7 @@ import { promisify } from "util";
 import path from "path";
 import Conf from "conf/dist/source";
 import type UserStats from "./types/stats/UserStats";
+import CONSTANTS from "./CONSTANTS";
 
 const glob = promisify(syncGlob);
 const config = new Conf({
@@ -36,12 +37,26 @@ export default async function (address?: string) {
   const screen = blessed.screen({
     title: "WSChat",
     smartCSR: true,
+    dockBorders: true,
   });
+
+  const titleBox = blessed.box({
+    top: 0,
+    height: 3,
+    border: {
+      type: "line",
+    },
+    align: "center",
+    hoverText: `Created with ❤ by Compositr`,
+  });
+
+  titleBox.setContent(chalk`{bgCyan WSChat} ${CONSTANTS.VERSION}`);
 
   const chatBox = blessed.box({
     label: "Messages",
     width: "100%",
-    height: "100%-6",
+    top: 3,
+    height: "100%-9",
     border: {
       type: "line",
     },
@@ -129,6 +144,7 @@ export default async function (address?: string) {
 
   msgInput.key(["C-c"], () => process.exit(0));
 
+  screen.append(titleBox);
   screen.append(chatBox);
   screen.append(inputBox);
   screen.append(statusBox);
@@ -195,8 +211,8 @@ export default async function (address?: string) {
     sock.on(WSEvents.STATS_USERS, (cb) => {
       cb({
         users: ioserver.engine.clientsCount,
-      } as UserStats)
-    })
+      } as UserStats);
+    });
 
     sock.broadcast.emit(WSEvents.NEW_PEER);
   });
