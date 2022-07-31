@@ -6,7 +6,7 @@ import http from "http";
 import chalk from "chalk";
 import type Message from "./types/messages/Message";
 import type Command from "./classes/Command";
-import syncGlob from "glob"
+import syncGlob from "glob";
 import { promisify } from "util";
 import path from "path";
 
@@ -84,7 +84,12 @@ export default async function (name: string, address?: string) {
   });
 
   msgInput.key("enter", () => {
-    const text = msgInput.getValue();
+    const text = msgInput.getValue().trim();
+    if (!text) {
+      msgInput.clearValue();
+      msgInput.focus();
+      return;
+    }
     chatLog.log(`{right}${text} <-{/right}`);
     if (text.startsWith("/")) {
       if (text.startsWith(`/nick`)) {
