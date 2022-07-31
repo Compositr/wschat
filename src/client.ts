@@ -11,7 +11,7 @@ import { promisify } from "util";
 import path from "path";
 import Conf from "conf/dist/source";
 import type UserStats from "./types/stats/UserStats";
-import CONSTANTS from "./CONSTANTS";
+import CONSTANTS from "./CONSTANTS.json";
 
 const glob = promisify(syncGlob);
 const config = new Conf({
