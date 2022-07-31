@@ -3,3 +3,7 @@ export default interface Message {
   author: string;
   timestamp: number;
 }
+
+export interface Nickname {
+  name: string;
+}
