@@ -9,10 +9,13 @@ import type Command from "./classes/Command";
 import syncGlob from "glob";
 import { promisify } from "util";
 import path from "path";
+import Configstore from "configstore";
 
 const glob = promisify(syncGlob);
+const config = new Configstore("wschat");
 
-export default async function (name: string, address?: string) {
+export default async function (address?: string) {
+  let name = config.get("name") ?? "Unnamed";
   const server = http.createServer();
   const ioserver = new socketio.Server(server, {
     maxHttpBufferSize: 1000000,
@@ -96,7 +99,8 @@ export default async function (name: string, address?: string) {
     if (text.startsWith("/")) {
       if (text.startsWith(`/nick`)) {
         name = text.split(" ")[1];
-        chatLog.log(chalk`{bgGreen CMD}: Nickname set to {green ${name}}`);
+        config.set("name", name);
+        chatLog.log(chalk`{bgGreen CMD}: Nickname set to {green ${name}} and save in config file`);
       }
 
       const cmd = commands.get(text.split(" ")[0].replace("/", ""));
@@ -151,6 +155,7 @@ export default async function (name: string, address?: string) {
 
   socket.on(WSEvents.MESSAGE, (msg: Message) => {
     chatLog.log(
+      // Don't indent the string below. just dont
       chalk`
 {dim ${new Date(msg.timestamp).toLocaleString()}} 
 -> ${msg.author}: ${msg.content}`
