@@ -153,7 +153,7 @@ export default async function (name: string, address?: string) {
     if (!address) {
       statusBox.setContent(chalk`{green Connected to} {magenta self}`);
       return chatLog.log(
-        chalk`--> {magenta CLIENT}: Connected to self. Previous peer was self.`
+        chalk`--> {magenta CLIENT}: Connected to self`
       );
     }
     chatLog.log(chalk`--> {magenta CLIENT}: Connected to server`);
