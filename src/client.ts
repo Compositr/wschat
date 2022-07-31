@@ -14,7 +14,9 @@ const glob = promisify(syncGlob);
 
 export default async function (name: string, address?: string) {
   const server = http.createServer();
-  const ioserver = new socketio.Server(server);
+  const ioserver = new socketio.Server(server, {
+    maxHttpBufferSize: 1000000,
+  });
   const commands = new Map<string, Command>();
 
   const commandFiles = await glob(path.join(__dirname, "commands/**/*.js"));
@@ -94,6 +96,7 @@ export default async function (name: string, address?: string) {
     if (text.startsWith("/")) {
       if (text.startsWith(`/nick`)) {
         name = text.split(" ")[1];
+        chatLog.log(chalk`{bgGreen CMD}: Nickname set to {green ${name}}`);
       }
 
       const cmd = commands.get(text.split(" ")[0].replace("/", ""));
@@ -106,6 +109,7 @@ export default async function (name: string, address?: string) {
     socket.emit(WSEvents.MESSAGE, {
       content: text,
       author: name,
+      timestamp: Date.now(),
     } as Message);
 
     msgInput.clearValue();
@@ -146,15 +150,17 @@ export default async function (name: string, address?: string) {
   );
 
   socket.on(WSEvents.MESSAGE, (msg: Message) => {
-    chatLog.log(`-> ${msg.author}: ${msg.content}`);
+    chatLog.log(
+      chalk`
+{dim ${new Date(msg.timestamp).toLocaleString()}} 
+-> ${msg.author}: ${msg.content}`
+    );
   });
 
   socket.on("connect", () => {
     if (!address) {
       statusBox.setContent(chalk`{green Connected to} {magenta self}`);
-      return chatLog.log(
-        chalk`--> {magenta CLIENT}: Connected to self`
-      );
+      return chatLog.log(chalk`--> {magenta CLIENT}: Connected to self`);
     }
     chatLog.log(chalk`--> {magenta CLIENT}: Connected to server`);
     statusBox.setContent(chalk`{green Connected to} {dim ${address}}`);
