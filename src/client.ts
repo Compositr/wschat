@@ -30,7 +30,7 @@ export default async function (address?: string) {
   const commandFiles = await glob(path.join(__dirname, "commands/**/*.js"));
   for (const file of commandFiles) {
     const command = await import(file);
-    commands.set(command.default.name, command.default);
+    commands.set(command.default.opts.name, command.default);
   }
 
   const screen = blessed.screen({

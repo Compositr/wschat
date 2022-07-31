@@ -3,7 +3,7 @@ import type { Server } from "socket.io";
 import type { Socket } from "socket.io-client";
 
 export default class Command {
-  constructor(public name: string, public execute: ExecuteFunctionType) {}
+  constructor(public opts: CommandOptions, public execute: ExecuteFunctionType) {}
 }
 
 export type ExecuteFunctionType = (
@@ -11,3 +11,8 @@ export type ExecuteFunctionType = (
   socket: Socket,
   socketio: Server
 ) => unknown;
+
+export interface CommandOptions {
+  name: string,
+  description: string
+}

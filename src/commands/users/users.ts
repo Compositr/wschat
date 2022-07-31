@@ -3,7 +3,10 @@ import Command from "../../classes/Command";
 import WSEvents from "../../enums/WSEvents";
 import type UserStats from "../../types/stats/UserStats";
 
-export default new Command("list", async (chatLog, clientSocket, socketio) => {
+export default new Command({
+  name: "users",
+  description: "Shows the number of users connected",
+}, async (chatLog, clientSocket, socketio) => {
   chatLog.log(chalk`{bgGreen CMD}: Querying connected peers`);
   const connected = await socketio.sockets.allSockets();
   chatLog.log(
