@@ -12,6 +12,8 @@ import path from "path";
 import Conf from "conf/dist/source";
 import type UserStats from "./types/stats/UserStats";
 import CONSTANTS from "./CONSTANTS.json";
+import axios from "axios";
+import gt from "semver/functions/gt";
 
 const glob = promisify(syncGlob);
 const config = new Conf({
@@ -216,4 +218,34 @@ export default async function (address?: string) {
 
     sock.broadcast.emit(WSEvents.NEW_PEER);
   });
+
+  /**
+   * Check for updates
+   */
+  const remoteConstants = await axios.get(CONSTANTS.UPDATE_URL);
+  if (gt(remoteConstants.data.VERSION, CONSTANTS.VERSION)) {
+    chatLog.log(chalk`{bgRed SYSTEM}: New version available!`);
+    const prompt = blessed.box({
+      align: "center",
+      border: {
+        type: "line",
+      },
+      content: chalk`
+{bold New version available!}
+
+{yellow ${CONSTANTS.VERSION}} --> {green ${remoteConstants.data.VERSION}}
+
+{dim Auto-dismissing in 3 seconds...}
+      `,
+    });
+
+    screen.append(prompt);
+    prompt.focus();
+    screen.render();
+
+    setTimeout(() => {
+      prompt.destroy();
+      screen.render();
+    }, 3_000);
+  }
 }
