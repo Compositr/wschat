@@ -6,8 +6,9 @@ import http from "http";
 import chalk from "chalk";
 import type Message from "./types/messages/Message";
 import type Command from "./classes/Command";
-import syncGlob from "glob";
+import syncGlob from "glob"
 import { promisify } from "util";
+import path from "path";
 
 const glob = promisify(syncGlob);
 
@@ -16,7 +17,7 @@ export default async function (name: string, address?: string) {
   const ioserver = new socketio.Server(server);
   const commands = new Map<string, Command>();
 
-  const commandFiles = await glob("./commands/**/*.js");
+  const commandFiles = await glob(path.join(__dirname, "commands/**/*.js"));
   for (const file of commandFiles) {
     const command = await import(file);
     commands.set(command.default.name, command.default);
@@ -90,7 +91,8 @@ export default async function (name: string, address?: string) {
         name = text.split(" ")[1];
       }
 
-      commands.get(text.split(" ")[0].slice(1))?.execute(chatLog);
+      const cmd = commands.get(text.split(" ")[0].replace("/", ""));
+      cmd?.execute(chatLog);
 
       msgInput.clearValue();
       msgInput.focus();
@@ -119,23 +121,23 @@ export default async function (name: string, address?: string) {
   server.listen(process.env.PORT ?? 0, () => {
     chatLog.log(
       chalk`--> {cyan SERVER}: Listening on port {green ${
-        (server.address() as any).port
+        (server.address() as any)?.port
       }}`
     );
 
     addressBox.setContent(
       chalk`ws://${
-        (server.address() as any).family === "IPv4"
-          ? (server.address() as any).address
-          : `[${(server.address() as any).address}]`
-      }:${(server.address() as any).port}`
+        (server.address() as any)?.family === "IPv4"
+          ? (server.address() as any)?.address
+          : `[${(server.address() as any)?.address}]`
+      }:${(server.address() as any)?.port}`
     );
   });
 
   // cb logic
 
   const socket = io(
-    address ?? `ws://localhost:${(server.address() as any).port}`
+    address ?? `ws://localhost:${(server.address() as any)?.port}`
   );
 
   socket.on(WSEvents.MESSAGE, (msg: Message) => {
