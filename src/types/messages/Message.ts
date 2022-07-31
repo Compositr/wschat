@@ -4,6 +4,7 @@ export default interface Message {
   timestamp: number;
 }
 
+/** @deprecated */
 export interface Nickname {
   name: string;
 }
