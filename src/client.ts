@@ -9,10 +9,13 @@ import type Command from "./classes/Command";
 import syncGlob from "glob";
 import { promisify } from "util";
 import path from "path";
-import Configstore from "configstore";
+import Conf from "conf/dist/source";
 
 const glob = promisify(syncGlob);
-const config = new Configstore("wschat");
+const config = new Conf({
+  configName: `wschatconfigv1`,
+  projectName: "wschat",
+});
 
 export default async function (address?: string) {
   let name = config.get("name") ?? "Unnamed";
@@ -88,7 +91,7 @@ export default async function (address?: string) {
     right: 0,
   });
 
-  msgInput.key("enter", () => {
+  msgInput.key("enter", async () => {
     const text = msgInput.getValue().trim();
     if (!text) {
       msgInput.clearValue();
@@ -100,11 +103,13 @@ export default async function (address?: string) {
       if (text.startsWith(`/nick`)) {
         name = text.split(" ")[1];
         config.set("name", name);
-        chatLog.log(chalk`{bgGreen CMD}: Nickname set to {green ${name}} and save in config file`);
+        chatLog.log(
+          chalk`{bgGreen CMD}: Nickname set to {green ${name}} and save in config file`
+        );
       }
 
       const cmd = commands.get(text.split(" ")[0].replace("/", ""));
-      cmd?.execute(chatLog);
+      await cmd?.execute(chatLog, socket as any, ioserver);
 
       msgInput.clearValue();
       msgInput.focus();
