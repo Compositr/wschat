@@ -87,8 +87,8 @@ export default async function (address?: string) {
     inputOnFocus: true,
   });
 
-  const statusBox = blessed.text({
-    label: "Status",
+  const connectionBox = blessed.text({
+    label: "Connection",
     bottom: 0,
     width: "49%",
     height: 3,
@@ -119,6 +119,7 @@ export default async function (address?: string) {
     }
     chatLog.log(`{right}${text} <-{/right}`);
     if (text.startsWith("/")) {
+      chatLog.log(chalk`{bgGreen CMD}: Command received`)
       if (text.startsWith(`/nick`)) {
         name = text.split(" ")[1];
         config.set("name", name);
@@ -128,6 +129,7 @@ export default async function (address?: string) {
       }
 
       const cmd = commands.get(text.split(" ")[0].replace("/", ""));
+      if(!cmd) chatLog.log(chalk`{bgRed CMD}: Command not found`);
       await cmd?.execute(chatLog, socket as any, ioserver);
 
       msgInput.clearValue();
@@ -149,7 +151,7 @@ export default async function (address?: string) {
   screen.append(titleBox);
   screen.append(chatBox);
   screen.append(inputBox);
-  screen.append(statusBox);
+  screen.append(connectionBox);
   screen.append(addressBox);
 
   screen.render();
@@ -189,15 +191,15 @@ export default async function (address?: string) {
 
   socket.on("connect", () => {
     if (!address) {
-      statusBox.setContent(chalk`{green Connected to} {magenta self}`);
+      connectionBox.setContent(chalk`{green Connected to} {magenta self}`);
       return chatLog.log(chalk`--> {magenta CLIENT}: Connected to self`);
     }
     chatLog.log(chalk`--> {magenta CLIENT}: Connected to server`);
-    statusBox.setContent(chalk`{green Connected to} {dim ${address}}`);
+    connectionBox.setContent(chalk`{green Connected to} {dim ${address}}`);
   });
 
   socket.on("disconnect", () => {
-    statusBox.setContent(chalk`{red Disconnected}`);
+    connectionBox.setContent(chalk`{red Disconnected}`);
     chatLog.log(chalk`--> {magenta CLIENT}: Disconnected from server`);
   });
 
