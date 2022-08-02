@@ -14,6 +14,7 @@ import type UserStats from "./types/stats/UserStats";
 import CONSTANTS from "./CONSTANTS.json";
 import axios from "axios";
 import gt from "semver/functions/gt";
+import setup from "./blessed/setup";
 
 const glob = promisify(syncGlob);
 const config = new Conf({
@@ -37,77 +38,13 @@ export default async function (address?: string) {
   }
 
   const screen = blessed.screen({
-    title: "WSChat",
+    title: `WSChat ${CONSTANTS.VERSION}`,
     smartCSR: true,
     dockBorders: true,
   });
 
-  const titleBox = blessed.box({
-    top: 0,
-    height: 3,
-    border: {
-      type: "line",
-    },
-    align: "center",
-    hoverText: `Created with ❤ by Compositr`,
-  });
-
-  titleBox.setContent(chalk`{bgCyan WSChat} ${CONSTANTS.VERSION}`);
-
-  const chatBox = blessed.box({
-    label: "Messages",
-    width: "100%",
-    top: 3,
-    height: "100%-9",
-    border: {
-      type: "line",
-    },
-  });
-
-  const chatLog = blessed.log({
-    parent: chatBox,
-    tags: true,
-    scrollable: true,
-    alwaysScroll: true,
-    mouse: true,
-  });
-
-  const inputBox = blessed.box({
-    label: "Send",
-    bottom: 3,
-    width: "100%",
-    height: 3,
-    border: {
-      type: "line",
-    },
-  });
-
-  const msgInput = blessed.textbox({
-    parent: inputBox,
-    inputOnFocus: true,
-  });
-
-  const connectionBox = blessed.text({
-    label: "Connection",
-    bottom: 0,
-    width: "49%",
-    height: 3,
-    border: {
-      type: "line",
-    },
-    left: 0,
-    fg: "#fff",
-  });
-
-  const addressBox = blessed.text({
-    label: "Server Address",
-    bottom: 0,
-    width: "49%",
-    height: 3,
-    border: {
-      type: "line",
-    },
-    right: 0,
+  const { chatLog, msgInput, connectionBox, addressBox } = await setup({
+    screen,
   });
 
   msgInput.key("enter", async () => {
@@ -119,7 +56,7 @@ export default async function (address?: string) {
     }
     chatLog.log(`{right}${text} <-{/right}`);
     if (text.startsWith("/")) {
-      chatLog.log(chalk`{bgGreen CMD}: Command received`)
+      chatLog.log(chalk`{bgGreen CMD}: Command received`);
       if (text.startsWith(`/nick`)) {
         name = text.split(" ")[1];
         config.set("name", name);
@@ -129,7 +66,7 @@ export default async function (address?: string) {
       }
 
       const cmd = commands.get(text.split(" ")[0].replace("/", ""));
-      if(!cmd) chatLog.log(chalk`{bgRed CMD}: Command not found`);
+      if (!cmd) chatLog.log(chalk`{bgRed CMD}: Command not found`);
       await cmd?.execute(chatLog, socket as any, ioserver);
 
       msgInput.clearValue();
@@ -145,18 +82,6 @@ export default async function (address?: string) {
     msgInput.clearValue();
     msgInput.focus();
   });
-
-  msgInput.key(["C-c"], () => process.exit(0));
-
-  screen.append(titleBox);
-  screen.append(chatBox);
-  screen.append(inputBox);
-  screen.append(connectionBox);
-  screen.append(addressBox);
-
-  screen.render();
-
-  msgInput.focus();
 
   server.listen(process.env.PORT ?? 0, () => {
     chatLog.log(
