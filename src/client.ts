@@ -29,13 +29,6 @@ export default async function (address?: string) {
   const ioserver = new socketio.Server(server, {
     maxHttpBufferSize: 1000000,
   });
-  const commands = new Map<string, Command>();
-
-  const commandFiles = await glob(path.join(__dirname, "commands/**/*.js"));
-  for (const file of commandFiles) {
-    const command = await import(file);
-    commands.set(command.default.opts.name, command.default);
-  }
 
   const screen = blessed.screen({
     title: `WSChat ${CONSTANTS.VERSION}`,
@@ -46,6 +39,21 @@ export default async function (address?: string) {
   const { chatLog, msgInput, connectionBox, addressBox } = await setup({
     screen,
   });
+
+  const commands = new Map<string, Command>();
+
+  const commandFiles = await glob(path.join(__dirname, "./commands/**/*.js"));
+  for (const file of commandFiles) {
+    const command = await import(file);
+    commands.set(command.default.opts.name, command.default);
+  }
+
+  if (!config.has("saw_gpl")) {
+    chatLog.log(
+      chalk`{bgCyan WSChat} is licensed under the {yellow GNU General Public License version 3.0}`
+    );
+    config.set("saw_gpl", 1);
+  }
 
   msgInput.key("enter", async () => {
     const text = msgInput.getValue().trim();
