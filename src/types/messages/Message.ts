@@ -1,10 +1,9 @@
-export default interface Message {
-  content: string;
-  author: string;
-  timestamp: number;
+export interface Message {
+  type: MessageTypes
 }
 
-/** @deprecated */
-export interface Nickname {
-  name: string;
+export enum MessageTypes {
+  CLEARTEXT,
+  PGPSIGNED,
+  PGPENCRYPTED
 }
