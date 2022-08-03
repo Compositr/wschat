@@ -23,6 +23,7 @@
     "semver": "^7.3.7",
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.1",
-    "tslib": "^2.4.0"
+    "tslib": "^2.4.0",
+    "zod": "^3.17.10"
   }
 }
